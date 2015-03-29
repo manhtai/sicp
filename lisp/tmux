@@ -1,0 +1,2 @@
+#!/bin/bash
+tmux new -s sicp -n racket 'cd /data/repos/dshs/course-sicp/lisp; fish; clear' \; splitw -h -p 45 -t 1 -c '/data/repos/dshs/course-sicp/lisp' ri \; selectp -t 1 \; attach
