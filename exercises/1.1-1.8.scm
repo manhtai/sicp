@@ -97,43 +97,45 @@
 
 ;; Arithmetic operations are almost always performed with limited
 ;; precision. New 'sqrt' procedure below can handle this problem
+;; Block structure included ;)
 
-(define (sqrt-iter guess x)
-  (if (good-enough? guess (improve guess x))
-      guess
-    (sqrt-iter (improve guess x)
-               x)))
-
-(define (improve guess x)
-  (average guess (/ x guess)))
-
-(define (average x y)
-  (/ (+ x y) 2))
-
-(define (good-enough? guess x)
-  (< (abs (- (square guess) x)) 0.001))
-
-(define (sqrt x)
+(define (new-sqrt x)
+  (define (sqrt-iter guess x)
+    (if (good-enough? guess x) 
+        guess
+      (sqrt-iter (improve guess x)
+                 x)))
+  (define (improve guess x)
+    (average guess (/ x guess)))
+  (define (average x y)
+    (/ (+ x y) 2))
+  (define (sqrt x)
+    (sqrt-iter 1.0 x))
+  (define (good-enough? guess x) ; New function here!
+    (< (/ (abs (- guess (improve guess x))) 
+          guess) 0.001))
   (sqrt-iter 1.0 x))
 
-(define (good-enough? guess new_guess)
-  (< (/ (abs (- guess new_guess)) guess) 0.001))
+(define (square x) (* x x))
 
-(sqrt (square 0.000000001)) ; 1.0003720056833836e-09
+(new-sqrt (square 1e-9)) ; 1.0003720056833836e-09
 
 ;; Exercises 1.8
-(define (cube-root y x)
-  (if (good-enough? y (improve y x))
-      y
-      (cube-root (improve y x)
-                 x)))
+;; Lexical scoping included ;)
 
-(define (improve y x)
-  (/ (+ (/ x (square y))  (* 2 y))
-     3))
-
-(define (cr x)
-  (cube-root 1.0 x))
+(define (cr x) 
+  (define (cr-iter guess)
+    (if (good-enough? guess) 
+        guess
+        (cr-iter (improve guess))))
+  (define (good-enough? guess)
+    (< (/ (abs (- guess (improve guess))) 
+          guess) 0.001))
+  (define (improve guess)
+    (/ (+ (/ x (square guess))  (* 2 guess))
+       3))
+  (define (square x) (* x x))
+  (cr-iter 1.0))
 
 (cr 27) ; expected: 3
 
