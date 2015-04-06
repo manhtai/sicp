@@ -22,7 +22,7 @@ MIT: Structure and Interpretation of Computer Programs
 
 ### Environment setup:
 
-- Get Racket, Tmux, Vim and follow this [guide][4]. You can use a packages manager for Vim (I use Vundle) to install a bunch of packages at once. The last time I start coding, I only need to run `tmux` file in `exercises` folder, and all are set!
+- Get Racket, Tmux, Vim and follow this [guide][4]. You can use a packages manager for Vim (I use Vundle) to install a bunch of packages at once. The last time I start coding, I only need to run `tmux` file, and all are set!
 
 - Don't use racket as the [guide][4], instead you might want to install my fixed version in `sicp-rkt` folder.
 
