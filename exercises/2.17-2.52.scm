@@ -1,3 +1,5 @@
+(include "../resources/book-code/ch2support.scm")
+
 ;; EXERCISE 2.17
 (define (last-pair l)
   (if (null? (cdr l))
@@ -61,7 +63,6 @@
 (same-parity 2 3 4 5 6 7)
 
 ;; EXERCISE 2.21
-(define (square x) (* x x))
 
 (define (square-list items)
   (if (null? items)
@@ -386,6 +387,8 @@ x
              (p sub-tree)))
        tree))
 
+;; Bookmarked!
+
 (define (square-tree tree) (tree-map square tree))
 
 (square-tree
@@ -450,11 +453,11 @@ x
 ;; EXERCISE 2.33
 ;; some more basis list-manipulation
 
-(define (map p sequence)
+(define (new-map p sequence)
   (accumulate (lambda (x y) (cons (p x) y)) nil sequence))
 ;; Re-define map, awesome!
 
-(map square '(1 2 3 4 5)) ; '(1 4 9 16 25) 
+(new-map square '(1 2 3 4 5)) ; '(1 4 9 16 25) 
 
 (define (append seq1 seq2)
   (accumulate cons seq2 seq1))
@@ -470,27 +473,85 @@ x
 
 ;; EXERCISE 2.34
 (define (horner-eval x coefficient-sequence)
-  (accumulate (lambda (this-coeff higher-terms) ??FILL-THIS-IN??)
+  (accumulate (lambda (this-coeff higher-terms) (+ this-coeff (* x higher-terms)))
               0
               coefficient-sequence))
 
-;: (horner-eval 2 (list 1 3 0 5 0 1))
+(horner-eval 2 (list 1 3 0 5 0 1)) ; 79
 
 ;; EXERCISE 2.35
+;; Old count-leaves
+(define (count-leaves x)
+  (cond ((null? x) 0)
+        ((not (pair? x)) 1)
+        (else (+ (count-leaves (car x))
+                 (count-leaves (cdr x))))))
+
+(define x (cons (list 1 2) (list 3 4)))
+(count-leaves x) ; 4
+(count-leaves (list x x)) ; 8
+
+;; New count-leaves
+
+(define (count-leaves t)
+  (accumulate (lambda (x y) (+ x y)) 
+              0 
+              (map (lambda (x) (if (pair? x)
+                                   (count-leaves x)
+                                   1))
+                   t)))
+;; The `map` function change t to a sequence of 1 as equivalent to one leaf, 
+;; the remaining job is to sum all together by `lambda`
+;; Yes, map over tree it is ;)
+
+(count-leaves x) ; 4
+(count-leaves (list x x)) ; 8
 
 ;; EXERCISE 2.36
 (define (accumulate-n op init seqs)
   (if (null? (car seqs))
       nil
-      (cons (accumulate op init ??FILL-THIS-IN??)
-            (accumulate-n op init ??FILL-THIS-IN??))))
+      (cons (accumulate op init (map car seqs))
+            (accumulate-n op init (map cdr seqs)))))
 
-;: (accumulate-n + 0 s)
+(define s '((1 2 3) (4 5 6) (7 8 9) (10 11 12)))
+(accumulate-n + 0 s) ; (22 26 30)
 
 ;; EXERCISE 2.37
+;; Test map with default implementation
+(map + (list 1 2 3) (list 40 50 60) (list 700 800 900)) ; (741 852 963)
+(map (lambda (x y) (+ x (* 2 y)))
+     (list 1 2 3)
+     (list 4 5 6)) ; (9 12 15)
 
+;; Matrix algebra, yeah ;))
 (define (dot-product v w)
   (accumulate + 0 (map * v w)))
+
+(define (matrix-*-vector m v)
+  (map (lambda (x) (dot-product v x)) m))
+
+(define (transpose mat)
+  (accumulate-n cons '() mat))
+
+(define (matrix-*-matrix m n)
+  (let ((cols (transpose n)))
+    (map  m)))
+
+(define m '((1 2 3 4) (4 5 6 6) (6 7 8 9)))
+(define n '((1 0 0 0) (0 1 0 0) (0 0 1 0)))
+(define i '((1 0 0) (0 1 0) (0 0 1)))
+(define k '(1 1 1 1))
+(define v '(1 1 1))
+(define w '(7 8 9))
+
+(dot-product v w) ; 24
+(matrix-*-vector m k) ; '(10 21 30)
+(transpose m)
+(matrix-*-matrix m i) ; m
+
+
+
 
 
 ;; EXERCISE 2.38

@@ -24,8 +24,9 @@ MIT: Structure and Interpretation of Computer Programs
 
 - Get Racket, Tmux, Vim and follow this [guide][4]. You can use a packages manager for Vim (I use Vundle) to install a bunch of packages at once. The last time I start coding, I only need to run `tmux` file in `exercises` folder, and all are set!
 
-- In section 1.2 when dealing with random integer larger than 4294967087, install `random-source` package for Racket ( `(require (planet williams/science/random-source))` ) to use `random-integer` function instead of `random`.
+_Notice_: You may don't want to use `neil/sicp` package like the [guide][4] because of some bugs. Instead you could use `(include)` to include some code from the book resouces or more challenging, write it for yourself!
 
+- In section 1.2 when dealing with random integer larger than 4294967087, install `random-source` package for Racket ( `(require (planet williams/science/random-source))` ) to use `random-integer` function instead of `random`.
 
 [1]: http://mitpress.mit.edu/sicp/
 [2]: https://github.com/sarabander/sicp-pdf
