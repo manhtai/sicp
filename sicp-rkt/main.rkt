@@ -1,5 +1,4 @@
 #lang r5rs
-;; $Id: main.rkt,v 1.22 2011/05/14 08:18:01 neilpair Exp $
 
 (#%require (only racket/base
                  current-inexact-milliseconds
@@ -9,10 +8,14 @@
                  make-parameter
                  random
                  void?)
-           ;; TODO: Is the Racket "#%module-begin" doing anything we don't
-           ;; want?
            (rename racket/base racket:module-begin #%module-begin)
-           (all-except (planet soegaard/sicp:2:=1/sicp) cons-stream))
+           (only (planet williams/science:4:=8/science) random-integer) 
+           ;; Import random-integer for generating number larger than 4294967087
+           ;; but it require exact integer, so we don't use (random 1e12), 
+           ;; we use (randomm 1000000000000)
+           (all-except (planet soegaard/sicp:2:=1/sicp) cons-stream)
+           ;; Import sicp picture language for draw picture in racket
+           )
 
 (define-syntax sicp:error
   (syntax-rules ()
@@ -35,13 +38,17 @@
 (define (runtime)
   (inexact->exact (truncate (* 1000 (current-inexact-milliseconds)))))
 
-(define (sicp:random x)
-  (if (zero? x)
-      (error 'random
-             "You called \"(random 0)\".  If you're doing SICP section 1.2.6, don't use 1 for the first argument of \"fast-prime?\".")
-      (random x)))
+;; {{{
+;; This random can only generate number smaller than 4294967087
+;; (define (sicp:random x)
+;;   (if (zero? x)
+;;       (error 'random
+;;              "You called \"(random 0)\".  If you're doing SICP section 1.2.6, don't use 1 for the first argument of \"fast-prime?\".")
+;;       (random x)))
+;; }}}
 
-;; This causes awful list presentation
+;; {{{
+;; This causes awful list presentation so I commented it.
 ;; ;;; @section Streams
 ;; 
 ;; (define-syntax cons-stream
@@ -51,7 +58,9 @@
 ;; (define the-empty-stream '())
 ;; 
 ;; (define (stream-null? x) (null? x))
+;; }}}
 
+;;; {{{
 ;;; @section
 
 (define-syntax sicp-syntax-error
@@ -109,6 +118,9 @@
 (define (%approx-equal? a b)
   (< (abs (- a b)) 1/10000))
 
+;;; }}}
+
+;;; {{{
 ;;; @section Print Handler
 
 ;; (define %current-print-handler-ate-first-void? (make-parameter #f))
@@ -127,26 +139,27 @@
 ;; 
 ;; (current-print (%make-print-handler))
 
-;;;
+;;; }}}
 
 (#%provide
  (for-syntax syntax-rules ...)
  (all-from-except r5rs #%module-begin)
  (rename racket:module-begin #%module-begin)
+ (all-from (planet williams/science:4:=8/science))
  (all-from (planet soegaard/sicp:2:=1/sicp))
  (rename sicp:error  error)
- (rename sicp:random random)
- (rename (planet wiliams/science/random-source) random-integer random)
+ (rename random-integer random)
  check-expect
  check-expect-approx
-;; cons-stream
- dec
  false
+ true
  identity
  inc
+ dec
  nil
  runtime
+ square
 ;; stream-null?
 ;; the-empty-stream
- true
- square)
+;; cons-stream
+)
