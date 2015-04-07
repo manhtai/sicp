@@ -735,24 +735,23 @@ x
 ;; =========================================================================
 ;; A Picture Language
 
+;; Test sicp-racket package
+(open-canvas)
+(draw wave)
+
+(close-canvas)
+
+
+;; Start learning!
+
 (define wave2 (beside wave (flip-vert wave)))
 (define wave4 (below wave2 wave2))
-
-
-(define (flipped-pairs painter)
-  (let ((painter2 (beside painter (flip-vert painter))))
-    (below painter2 painter2)))
-
-
-;: (define wave4 (flipped-pairs wave))
-
 
 (define (right-split painter n)
   (if (= n 0)
       painter
       (let ((smaller (right-split painter (- n 1))))
         (beside painter (below smaller smaller)))))
-
 
 (define (corner-split painter n)
   (if (= n 0)
@@ -765,36 +764,11 @@ x
           (beside (below painter top-left)
                   (below bottom-right corner))))))
 
-
 (define (square-limit painter n)
   (let ((quarter (corner-split painter n)))
     (let ((half (beside (flip-horiz quarter) quarter)))
       (below (flip-vert half) half))))
 
-
-;; Higher-order operations
-
-(define (square-of-four tl tr bl br)
-  (lambda (painter)
-    (let ((top (beside (tl painter) (tr painter)))
-          (bottom (beside (bl painter) (br painter))))
-      (below bottom top))))
-
-
-(define (flipped-pairs painter)
-  (let ((combine4 (square-of-four identity flip-vert
-                                  identity flip-vert)))
-    (combine4 painter)))
-
-; footnote
-;: (define flipped-pairs
-;:   (square-of-four identity flip-vert identity flip-vert))
-
-
-(define (square-limit painter n)
-  (let ((combine4 (square-of-four flip-horiz identity
-                                  rotate180 flip-vert)))
-    (combine4 (corner-split painter n))))
 
 ;; EXERCISE 2.44
 (define (up-split painter n)
@@ -803,20 +777,50 @@ x
       (let ((smaller (up-split painter (- n 1))))
         (below painter (beside smaller smaller)))))
 
+;; For later testing
+(open-canvas)
+(draw (up-split wave 3))
 
 ;; EXERCISE 2.45
 (define (split dir-a dir-b)
-  (define (my-split p n)
+  (lambda (p n)
     (if (= n 0)
-        0
-        (let ((smaller )))))
+        p
+        (let ((smaller ((split dir-a dir-b) p (- n 1))))
+          (dir-a p (dir-b smaller smaller))))))
 
 (define right-split (split beside below))
 (define up-split (split below beside))
 
+;; For later testing
+(clear-canvas)
+(draw (right-split wave 3))
 
-;; Frames
+(clear-canvas)
+(draw (up-split wave 3))
 
+(close-canvas)
+
+;; EXERCISE 2.46
+
+(define (make-vect a b) (cons a b))
+(define xcor-vect car)
+(define ycor-vect cdr)
+
+(define (add-vect v1 v2)
+  (make-vect (+ (xcor-vect v1) (xcor-vect v2))
+             (+ (ycor-vect v1) (ycor-vect v2))))
+
+(define (sub-vect v1 v2)
+  (make-vect (- (xcor-vect v1) (xcor-vect v2))
+             (- (ycor-vect v1) (ycor-vect v2))))
+
+(define (scale-vect s v) ; vec after s
+  (make-vect (* s (xcor-vect v))
+             (* s (ycor-vect v))))
+
+;; EXERCISE 2.47
+;; Book code
 (define (frame-coord-map frame)
   (lambda (v)
     (add-vect
@@ -826,33 +830,77 @@ x
                (scale-vect (ycor-vect v)
                            (edge2-frame frame))))))
 
+;; Implement 1
+(define (make-frame origin edge1 edge2) (list origin edge1 edge2))
+(define origin-frame car)
+(define edge1-frame cadr)
+(define edge2-frame caddr)
 
-;: ((frame-coord-map a-frame) (make-vect 0 0))
-
-;: (origin-frame a-frame)
-
-
-;; EXERCISE 2.47
-
-(define (make-frame origin edge1 edge2)
-  (list origin edge1 edge2))
-
-(define (make-frame origin edge1 edge2)
-  (cons origin (cons edge1 edge2)))
+;; ;; Implement 2
+;; (define (make-frame origin edge1 edge2) (cons origin (cons edge1 edge2)))
+;; (define origin-frame car)
+;; (define edge1-frame cadr)
+;; (define edge2-frame cddr)
 
 
-;; Painters
+;; EXERCISE 2.48
+(define (make-segment v1 v2) (list v1 v2))
+(define start-segment car)
+(define end-segment cadr)
+
+;; EXERCISE 2.49
 
 (define (segments->painter segment-list)
   (lambda (frame)
     (for-each
      (lambda (segment)
-       (draw-line
+       (line ; we use line here instead of draw-line to draw it in canvas
         ((frame-coord-map frame) (start-segment segment))
         ((frame-coord-map frame) (end-segment segment))))
      segment-list)))
 
 
+;; part a: outline
+
+(define outline
+  (segments->painter
+    (list (make-segment (make-vect 0.0 0.0) (make-vect 0.0 1.0))
+          (make-segment (make-vect 0.0 1.0) (make-vect 1.0 1.0))
+          (make-segment (make-vect 1.0 1.0) (make-vect 1.0 0.0))
+          (make-segment (make-vect 1.0 0.0) (make-vect 0.0 0.0)))))
+
+(open-canvas)
+(draw outline)
+
+;; part b: X
+
+(define X
+  (segments->painter
+    (list (make-segment (make-vect 0.0 0.0) (make-vect 1.0 1.0))
+          (make-segment (make-vect 0.0 1.0) (make-vect 1.0 0.0)))))
+
+(clear-canvas)
+(draw X)
+
+;; part c: diamond
+
+(define diamond
+  (segments->painter
+    (list (make-segment (make-vect 0.5 0.0) (make-vect 1.0 0.5))
+          (make-segment (make-vect 1.0 0.5) (make-vect 0.5 1.0))
+          (make-segment (make-vect 0.5 1.0) (make-vect 0.0 0.5))
+          (make-segment (make-vect 0.0 0.5) (make-vect 0.5 0.0)))))
+
+(clear-canvas)
+(draw diamond)
+
+;; part d: wave
+
+(clear-canvas)
+(draw wave)
+
+;; EXERCISE 2.50
+;; Book code
 (define (transform-painter painter origin corner1 corner2)
   (lambda (frame)
     (let ((m (frame-coord-map frame)))
@@ -906,6 +954,28 @@ x
       (lambda (frame)
         (paint-left frame)
         (paint-right frame)))))
+
+
+;; Our code
+
+
+
+;; EXERCISE 2.51
+
+
+;; EXERCISE 2.52
+
+
+
+;; EXERCISE 2.53
+
+
+
+
+;; DONE SECTION 2.2 :)
+
+
+
 
 
 

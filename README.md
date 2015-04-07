@@ -1,7 +1,7 @@
 MIT: Structure and Interpretation of Computer Programs
 ======================================================
 
-### Syllabus:
+### My goal:
 
 - Watch all lecture video
 - Read the book

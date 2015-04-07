@@ -72,8 +72,8 @@
 
 (define (repeated f n)
   (cond ((= n 0) identity)
-	((= n 1) f)
-	(else (compose f (repeated f (- n 1))))))
+    ((= n 1) f)
+    (else (compose f (repeated f (- n 1))))))
 
 ;;; Streams
 
@@ -140,21 +140,18 @@
 (define ycor-vect cdr)
 
 (define (add-vect vec1 vec2)
-  (make-vect (+ (xcor-vect vec1) (xcor-vect vec2))
-			 (+ (ycor-vect vec1) (ycor-vect vec2))))
+  (make-vect (+ (xcor-vect vec1) (xcor-vect vec2)) (+ (ycor-vect vec1) (ycor-vect vec2))))
 
 (define (sub-vect vec1 vec2)
-  (make-vect (- (xcor-vect vec1) (xcor-vect vec2))
-			 (- (ycor-vect vec1) (ycor-vect vec2))))
+  (make-vect (- (xcor-vect vec1) (xcor-vect vec2)) (- (ycor-vect vec1) (ycor-vect vec2))))
 
 (define (scale-vect s vec)
-  (make-vect (* s (xcor-vect vec))
-			 (* s (ycor-vect vec))))
+  (make-vect (* s (xcor-vect vec)) (* s (ycor-vect vec))))
 
 ;; segment
-(define (make-segment start-vec end-vec) (cons start-vec end-vec))
+(define (make-segment start-vec end-vec) (list start-vec end-vec))
 (define start-segment car)
-(define end-segment cdr)
+(define end-segment cadr)
 
 ;; frame
 (define (make-frame origin edge1 edge2)
@@ -176,12 +173,12 @@
 ;; painter
 (define (segments->painter segment-list)
   (lambda (frame)
-	(for-each
-	 (lambda (segment)
-	   (line
-		((frame-coord-map frame) (start-segment segment))
-		((frame-coord-map frame) (end-segment segment))))
-	 segment-list)))
+    (for-each
+     (lambda (segment)
+      (line
+        ((frame-coord-map frame) (start-segment segment))
+        ((frame-coord-map frame) (end-segment segment))))
+      segment-list)))
 
 ;;; Canvas
 
@@ -196,46 +193,46 @@
 ;; open canvas to display picture
 (define open-canvas 
   (lambda ()
-	(if (null? vp)
-		(begin
-		  (open-graphics)
-		  (set! vp (open-viewport "A Picture Language"
-								  (+ canvas-width  (* canvas-margin 2))
-								  (+ canvas-height (* canvas-margin 2)))))
-		nil)))
+    (if (null? vp)
+      (begin
+        (open-graphics)
+        (set! vp (open-viewport "A Picture Language"
+                                (+ canvas-width  (* canvas-margin 2))
+                                (+ canvas-height (* canvas-margin 2)))))
+      nil)))
 
 ;; close canvas
 (define close-canvas  
   (lambda ()
-	(if (null? vp)
-		nil
-		(begin
-		  (close-viewport vp)
-		  (close-graphics)
-		  (set! vp nil)))))
+    (if (null? vp)
+        nil
+        (begin
+          (close-viewport vp)
+          (close-graphics)
+          (set! vp nil)))))
 
 ;; clear canvas for another picture
 (define clear-canvas   
   (lambda ()
-	(if (null? vp)
-		nil
-		((clear-viewport vp)))))
+    (if (null? vp)
+        nil
+        ((clear-viewport vp)))))
 
 ;; draw line on canvas
 (define (line start-vec end-vec)
   (define (vect->posn vec)
-	(make-posn (xcor-vect vec) (ycor-vect vec)))
+    (make-posn (xcor-vect vec) (ycor-vect vec)))
   ((draw-line vp) (vect->posn start-vec)
                   (vect->posn end-vec)))
 
 ;; draw painter on canvas
 (define (draw painter)
   (let ((f (make-frame
-			(make-vect canvas-margin
-					   (+ canvas-margin canvas-height))
-			(make-vect canvas-width 0)
-			(make-vect 0 (* -1 canvas-height)))))
-	(painter f)))
+            (make-vect canvas-margin
+                       (+ canvas-margin canvas-height))
+            (make-vect canvas-width 0)
+            (make-vect 0 (* -1 canvas-height)))))
+    (painter f)))
 
 ;;; Geogre
 
