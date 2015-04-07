@@ -1,0 +1,1 @@
+("6.1.1" ("e3e67f6a42fc85432071ba3cda7d467eb91e2b07" . "dc608c3b463e4929fdf84df4d974c536f7173557") #"/home/manhtai/.racket/planet/300/6.1.1/cache/williams/science.plt/4/8/science.rkt" (collects #"racket" #"base.rkt") (collects #"r5rs" #"main.rkt") (collects #"graphics" #"graphics.rkt") (collects #"r5rs" #"lang" #"reader.rkt"))
