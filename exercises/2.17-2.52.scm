@@ -753,6 +753,9 @@ x
       (let ((smaller (right-split painter (- n 1))))
         (beside painter (below smaller smaller)))))
 
+(clear-canvas)
+(draw (right-split wave 3))
+
 (define (corner-split painter n)
   (if (= n 0)
       painter
@@ -763,6 +766,9 @@ x
               (corner (corner-split painter (- n 1))))
           (beside (below painter top-left)
                   (below bottom-right corner))))))
+
+(clear-canvas)
+(draw (corner-split wave 3))
 
 (define (square-limit painter n)
   (let ((quarter (corner-split painter n)))
@@ -778,7 +784,7 @@ x
         (below painter (beside smaller smaller)))))
 
 ;; For later testing
-(open-canvas)
+(clear-canvas)
 (draw (up-split wave 3))
 
 ;; EXERCISE 2.45
@@ -910,13 +916,15 @@ x
                      (sub-vect (m corner1) new-origin)
                      (sub-vect (m corner2) new-origin)))))))
 
-
 (define (flip-vert painter)
   (transform-painter painter
                      (make-vect 0.0 1.0)    ; new origin
                      (make-vect 1.0 1.0)    ; new end of edge1
                      (make-vect 0.0 0.0)))  ; new end of edge2
 
+;; Test that!
+(clear-canvas)
+(draw (flip-vert wave))
 
 (define (shrink-to-upper-right painter)
   (transform-painter painter
@@ -955,27 +963,137 @@ x
         (paint-left frame)
         (paint-right frame)))))
 
+(clear-canvas)
+(draw (beside wave diamond))
 
 ;; Our code
+;; flip-horiz
+(define (flip-horiz painter)
+  (transform-painter painter
+                     (make-vect 1.0 0.0)    ; new origin
+                     (make-vect 0.0 0.0)    ; new end of edge1
+                     (make-vect 1.0 1.0)))  ; new end of edge2
 
+(clear-canvas)
+(draw (flip-horiz wave))
+
+;; rotate 180
+(define (rotate180 painter)
+  (transform-painter painter
+                     (make-vect 1.0 1.0)
+                     (make-vect 0.0 1.0)
+                     (make-vect 1.0 0.0)))
+
+(clear-canvas)
+(draw (rotate180 wave))
+
+;; rotate 270
+(define (rotate270 painter)
+  (transform-painter painter
+                     (make-vect 0.0 1.0)
+                     (make-vect 0.0 0.0)
+                     (make-vect 1.0 1.0)))
+
+(clear-canvas)
+(draw (rotate270 wave))
 
 
 ;; EXERCISE 2.51
+;; Way 1
+(define (below p1 p2)
+  (let ((split-point (make-vect 0.0 0.5)))
+    (let ((paint-top
+           (transform-painter p1
+                              split-point
+                              (make-vect 1.0 0.5)
+                              (make-vect 0.0 1.0)))
+          (paint-bottom
+           (transform-painter p2
+                              (make-vect 0.0 0.0)
+                              (make-vect 1.0 0.0)
+                              split-point)))
+      (lambda (frame)
+        (paint-top frame)
+        (paint-bottom frame)))))
 
+(clear-canvas)
+(draw (below wave wave2))
+
+
+;; Way 2
+(define (below p1 p2)
+  (rotate180 (rotate90 (beside (rotate90 p2) (rotate90 p1)))))
+
+
+(clear-canvas)
+(draw (below wave wave2))
 
 ;; EXERCISE 2.52
+;; part a: smile Geogre
+
+(define smile-geogre
+  (segments->painter
+    (append (list (make-segment (make-vect 0.40 0.80) (make-vect 0.50 0.70))
+                  (make-segment (make-vect 0.50 0.70) (make-vect 0.60 0.80))
+                  (make-segment (make-vect 0.35 0.85) (make-vect 0.40 0.90))
+                  (make-segment (make-vect 0.40 0.90) (make-vect 0.45 0.85))
+                  (make-segment (make-vect 0.65 0.85) (make-vect 0.60 0.90))
+                  (make-segment (make-vect 0.60 0.90) (make-vect 0.55 0.85)))
+            geogre)))
+
+(clear-canvas)
+(draw smile-geogre)
 
 
+;; part b and c original book code
+(define (corner-split painter n)
+  (if (= n 0)
+      painter
+      (let ((up (up-split painter (- n 1)))
+            (right (right-split painter (- n 1))))
+        (let ((top-left (beside up up))
+              (bottom-right (below right right))
+              (corner (corner-split painter (- n 1))))
+          (beside (below painter top-left)
+                  (below bottom-right corner))))))
 
-;; EXERCISE 2.53
+(clear-canvas)
+(draw (corner-split smile-geogre 3))
+
+(define (square-limit painter n)
+  (let ((quarter (corner-split painter n)))
+    (let ((half (beside (flip-horiz quarter) quarter)))
+      (below (flip-vert half) half))))
+
+(clear-canvas)
+(draw (square-limit smile-geogre 3))
+
+;; part b: 
+(define (corner-split2 painter n)
+  (if (= n 0)
+      painter
+      (let ((right (right-split painter (- n 1)))
+            (up (up-split painter (- n 1)))
+            (corner (corner-split2 painter (- n 1))))
+        (beside (below painter up)
+                (below right corner))))) 
+
+(clear-canvas)
+(draw (corner-split2 smile-geogre 3))
 
 
+;; part c:
+(define (square-limit2 painter n)
+  (let ((quarter (corner-split2 (flip-horiz painter) n)))
+    (let ((half (beside (flip-horiz quarter) quarter)))
+      (below (flip-vert half) half))))
 
+(clear-canvas)
+(draw (square-limit2 smile-geogre 3))
 
-;; DONE SECTION 2.2 :)
+(clear-canvas)
+(draw (square-limit smile-geogre 3))
 
-
-
-
+(close-canvas)
 
 

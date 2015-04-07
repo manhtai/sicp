@@ -1,4 +1,4 @@
-#lang r5rs
+#lang racket
 
 (#%require (only racket/base
                  current-inexact-milliseconds
@@ -87,45 +87,45 @@
 
 ;;; Syntax
 
-(define-syntax sicp:error
-  (syntax-rules ()
-    ((_ REASON ARG ...) (error REASON ARG ...))))
-
-(define-syntax sicp-syntax-error
-  (syntax-rules ()
-    ((_) #f)))
-
-(define-syntax check-expect
-  (syntax-rules ()
-    ((_ VAL EXPECT)
-     (%check-expect-internal 'check-expect
-                             equal?
-                             (quote VAL)
-                             VAL
-                             EXPECT))))
-
-(define-syntax check-expect-approx
-  (syntax-rules ()
-    ((_ VAL EXPECT)
-     (%check-expect-internal 'check-expect-approx
-                             %approx-equal?
-                             (quote VAL)
-                             VAL
-                             EXPECT))))
-
-(define (%check-expect-internal name check-proc val-syntax val expected)
-  (display name)
-  (display ": ")
-  (write val-syntax)
-  (display " \u21D2 ")
-  (let ((v VAL))
-    (display val)
-    (newline)
-    (if (check-proc val expected)
-        (values)
-        (error name
-               "Test failed: expected ~S"
-               expected))))
+;; (define-syntax sicp:error
+;;   (syntax-rules ()
+;;     ((_ REASON ARG ...) (error REASON ARG ...))))
+;; 
+;; (define-syntax sicp-syntax-error
+;;   (syntax-rules ()
+;;     ((_) #f)))
+;; 
+;; (define-syntax check-expect
+;;   (syntax-rules ()
+;;     ((_ VAL EXPECT)
+;;      (%check-expect-internal 'check-expect
+;;                              equal?
+;;                              (quote VAL)
+;;                              VAL
+;;                              EXPECT))))
+;; 
+;; (define-syntax check-expect-approx
+;;   (syntax-rules ()
+;;     ((_ VAL EXPECT)
+;;      (%check-expect-internal 'check-expect-approx
+;;                              %approx-equal?
+;;                              (quote VAL)
+;;                              VAL
+;;                              EXPECT))))
+;; 
+;; (define (%check-expect-internal name check-proc val-syntax val expected)
+;;   (display name)
+;;   (display ": ")
+;;   (write val-syntax)
+;;   (display " \u21D2 ")
+;;   (let ((v VAL))
+;;     (display val)
+;;     (newline)
+;;     (if (check-proc val expected)
+;;         (values)
+;;         (error name
+;;                "Test failed: expected ~S"
+;;                expected))))
 
 (define (%approx-equal? a b)
   (< (abs (- a b)) 1/10000))
@@ -235,9 +235,7 @@
     (painter f)))
 
 ;;; Geogre
-
-(define wave
-  (segments->painter
+(define geogre
    (list (make-segment (make-vect 0.2 0.0) (make-vect 0.4 0.4))
          (make-segment (make-vect 0.4 0.4) (make-vect 0.3 0.5))
          (make-segment (make-vect 0.3 0.5) (make-vect 0.1 0.3))
@@ -254,18 +252,20 @@
          (make-segment (make-vect 1.0 0.2) (make-vect 0.6 0.4))
          (make-segment (make-vect 0.6 0.4) (make-vect 0.8 0.0))
          (make-segment (make-vect 0.7 0.0) (make-vect 0.5 0.3))
-         (make-segment (make-vect 0.5 0.3) (make-vect 0.3 0.0)))))
+         (make-segment (make-vect 0.5 0.3) (make-vect 0.3 0.0))))
 
+(define wave
+  (segments->painter geogre))
 
 (#%provide
- (for-syntax syntax-rules ...)
+;; (for-syntax syntax-rules ...)
  (rename racket:module-begin #%module-begin)
  (all-from (planet williams/science:4:=8/science))
  (all-from graphics/graphics)
- (rename sicp:error  error)
+;; (rename sicp:error  error)
  (rename random-integer random)
- check-expect
- check-expect-approx
+;; check-expect
+;; check-expect-approx
  false
  true
  identity
@@ -286,6 +286,7 @@
  draw
  line
  wave
+ geogre
  stream-null?
  the-empty-stream
  cons-stream)
