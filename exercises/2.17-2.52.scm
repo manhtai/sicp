@@ -1084,9 +1084,9 @@ x
 
 ;; part c:
 (define (square-limit2 painter n)
-  (let ((quarter (corner-split2 (flip-horiz painter) n)))
-    (let ((half (beside (flip-horiz quarter) quarter)))
-      (below (flip-vert half) half))))
+  (let ((combine4 (square-of-four flip-vert rotate180 
+                                   identity flip-horiz))) 
+    (combine4 (corner-split painter n)))) 
 
 (clear-canvas)
 (draw (square-limit2 smile-geogre 3))

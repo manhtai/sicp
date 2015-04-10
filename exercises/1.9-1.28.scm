@@ -28,6 +28,10 @@
 ;; Recusive procedure, recusive process
 
 ;; EXERCISE 1.10
+;; Ackermann’s function
+;; This function has one of many applications that is used in Union Find with 
+;; rank and path compression. It's inverse function is called alpha.
+
 (define (A x y)
   (cond ((= y 0) 0)
         ((= x 0) (* 2 y))
@@ -79,7 +83,7 @@
 (define (h n) (A 2 n)) 
 ;; (A 1 (A 2 n-1))
 ;; 2^f(n-1) = f(n)
-;; f(n) = 2^2^2... (n exponential)
+;; f(n) = 2^2^2... (2 power iteration)
 
 (define (k n) (* 5 n n))
 ;; 5n^2
