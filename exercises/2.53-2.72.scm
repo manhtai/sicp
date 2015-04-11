@@ -342,10 +342,14 @@
 ;; Otherwise, if the lists are not ordered we can implement an O(n log n) running
 ;; time sort beforehand, and total running time is now O(n log n)
 
-;; Am I right? Yeah, I guess ;)
+;; Am I right? We'll see
+;; Evaluate
+(list->tree '(1 5 3 8 2 4)) ; return
+'(3 (1 () (5 () ())) (2 (8 () ()) (4 () ())))
+; which isn't a binary tree, but a balanced tree, indeed.
 
 ;; EXERCISE 2.66
-;; Ordered binary tree, same as before
+;; Ordered binary tree, same as before we can look in the right or in the left
 
 (define (lookup given-key set-of-records)
   (cond ((null? set-of-records) #f)
@@ -361,13 +365,176 @@
 ;; since this topic isn't included in the class assignments (The professor used 2 knapsack
 ;; problems instead, one of which is very challenging indeed)
 
+
+;; Huffman code
+;; representing 
+(define (make-leaf symbol weight)
+  (list 'leaf symbol weight))
+
+(define (leaf? object)
+  (eq? (car object) 'leaf))
+
+(define (symbol-leaf x) (cadr x))
+
+(define (weight-leaf x) (caddr x))
+
+(define (make-code-tree left right)
+  (list left
+        right
+        (append (symbols left) (symbols right))
+        (+ (weight left) (weight right))))
+
+(define (left-branch tree) (car tree))
+
+(define (right-branch tree) (cadr tree))
+
+(define (symbols tree)
+  (if (leaf? tree)
+      (list (symbol-leaf tree))
+      (caddr tree)))
+
+(define (weight tree)
+  (if (leaf? tree)
+      (weight-leaf tree)
+      (cadddr tree)))
+
+;; decoding
+(define (decode bits tree)
+  (define (decode-1 bits current-branch)
+    (if (null? bits)
+        '()
+        (let ((next-branch
+               (choose-branch (car bits) current-branch)))
+          (if (leaf? next-branch)
+              (cons (symbol-leaf next-branch)
+                    (decode-1 (cdr bits) tree))
+              (decode-1 (cdr bits) next-branch)))))
+  (decode-1 bits tree))
+
+(define (choose-branch bit branch)
+  (cond ((= bit 0) (left-branch branch))
+        ((= bit 1) (right-branch branch))
+        (else (error "bad bit -- CHOOSE-BRANCH" bit))))
+
+;; sets
+(define (adjoin-set x set)
+  (cond ((null? set) (list x))
+        ((< (weight x) (weight (car set))) (cons x set))
+        (else (cons (car set)
+                    (adjoin-set x (cdr set))))))
+
+(define (make-leaf-set pairs)
+  (if (null? pairs)
+      '()
+      (let ((pair (car pairs)))
+        (adjoin-set (make-leaf (car pair)
+                               (cadr pair))
+                    (make-leaf-set (cdr pairs))))))
+
 ;; EXERCISE 2.67
 
+(define sample-tree
+  (make-code-tree (make-leaf 'A 4)
+                  (make-code-tree
+                   (make-leaf 'B 2)
+                   (make-code-tree (make-leaf 'D 1)
+                                   (make-leaf 'C 1)))))
+
+(define sample-message '(0 1 1 0 0 1 0 1 0 1 1 1 0))
+
+(decode sample-message sample-tree) ; '(A D A B B C A)
+
+;; EXERCISE 2.68
+
+(define (encode message tree)
+  (if (null? message)
+      '()
+      (append (encode-symbol (car message) tree)
+              (encode (cdr message) tree))))
+
+;; Recursive in left/ right
+(define (encode-symbol s t)
+  (let ((left (left-branch t))
+        (right (right-branch t)))
+    (cond ((and (leaf? left) (eq? s (symbol-leaf left))) '(0))
+          ((and (leaf? right) (eq? s (symbol-leaf right))) '(1))
+          ((memq s (symbols left)) (cons 0 (encode-symbol s left)))
+          ((memq s (symbols right)) (cons 1 (encode-symbol s right)))
+          (else (error "bad symbol: not found in tree")))))
 
 
+(define m '(A D A B B C A))
+(encode-symbol 'B sample-tree) ; '(1 0)
+(encode m sample-tree) ; '(0 1 1 0 0 1 0 1 0 1 1 1 0)
+
+;; EXERCISE 2.69
+
+(define (generate-huffman-tree pairs)
+  (successive-merge (make-leaf-set pairs)))
+
+;; We need calculate weight for sorting below
+(define (weight-of x)
+  (cond ((leaf? x) (weight-leaf x))
+        (else (weight x))))
+
+;; We need to sort set after each mergings 
+;; It's very similar to adjoint-set! Amazingly!
+(define (merge-set tree set)
+  (if (null? set)
+      (list tree)
+      (let ((first-weight (weight-of (car set)))
+            (tree-weight (weight tree)))
+        (cond ((< first-weight tree-weight) (cons (car set) (merge-set tree (cdr set))))
+              (else (cons tree set))))))
+
+;; Now we merge until only 1 last
+(define (successive-merge leaf-set)
+  (define (fail-merge set n)
+    (if (= n 1)
+        set
+        (fail-merge (merge-set (make-code-tree (car set) (cadr set))
+                               (cddr set)) (- n 1))))
+  ; We use list of tree and leaf, so we 'car' it to get the very last tree
+  (car (fail-merge leaf-set (length leaf-set))))
+
+;; Test this using pairs in 2.70
+(define song-pairs
+  '((A 2) (GET 2) (SHA 3) (WAH 1)
+    (BOOM 1) (JOB 2) (NA 16) (YIP 9)))
+
+(define ls (make-leaf-set song-pairs))
+(successive-merge ls)
+
+(define song-tree (generate-huffman-tree song-pairs))
+
+(symbols song-tree) ; '(NA YIP BOOM WAH JOB SHA GET A)
+(weight song-tree) ; 36
+
+;; EXERCISE 2.70:
+
+;; Rock on!
+(define rock '(GET A JOB SHA NA NA NA NA NA NA NA NA GET A JOB SHA NA NA NA NA NA NA NA NA WAH YIP YIP YIP YIP YIP YIP YIP YIP YIP SHA BOOM))
+
+(define rock-en (encode rock song-tree))
+
+(length rock-en) ; 84 bits required for encoding
+;; If we use 8 symbol alphabet, let's see:
+(length rock) ; 35 space, 36x2 = 72 chacters at least, so we need 8x(35+72) = 856 at least
 
 
+;; EXERCISE 2.71:
+;; For n = 5
+(define pair-5 '((A 1) (B 2) (C 4) (D 8) (E 16)))
+(define tree-5 (generate-huffman-tree pair-5))
+tree-5 ; 1 bit for E, 4 bits for A
 
+;; With n in general:
+;; 1 for most frequent symbol
+;; n-1 for least frequent, I guess, hehe
+
+;; EXERCISE 2.72:
+;; My encode function use 'memq' which runs in O(n) so for most frequent symbol
+;; it required O(1) but for least frequent it require O(n^2)
 
 
 
