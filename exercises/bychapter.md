@@ -11,7 +11,8 @@
 - Section 2.1: 2.1-2.16
 - Section 2.2: 2.17-2.52
 - Section 2.3: 2.53-2.72
-- Section 2.4-5: 2.73-2.97
+- Section 2.4: 2.73-2.76
+- Section 2.5: 2.77-2.97
 
 ## Chapter 3: 82 exercises
 

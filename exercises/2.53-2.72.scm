@@ -57,7 +57,7 @@
 (define exponent caddr)
 (define (make-expo b e)
   (cond ((=number? e 0) 1)
-        ((=number? e 1) e)
+        ((=number? e 1) b)
         (else (list '** b e))))
 
 (deriv '(** x 5) 'x) ; '(* 5 (** x 4))

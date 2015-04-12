@@ -10,10 +10,12 @@
            (rename racket/base racket:module-begin #%module-begin)
            (only (planet williams/science:4:=8/science) random-integer) 
            ;; Import random-integer for generating number larger than 4294967087
+           racket/mpair
+           ;; mpair for set-mcar!, set-mcdr!
            graphics/graphics)
            ;; Import graphics for display picture in canvas
 
-;;; Arithmetic
+;;; ARITHMETIC
 
 (define true #t)
 
@@ -60,7 +62,14 @@
 (define pi/4 (atan 1 1))
 (define pi (* 4 pi/4))
 
-;;; Utilities
+(define (fib n)
+  (cond ((= n 0) 0)
+        ((= n 1) 1)
+        (else (+ (fib (- n 1))
+                 (fib (- n 2))))))
+
+
+;;; UTILITIES
 
 (define (runtime)
   (inexact->exact (truncate (* 1000 (current-inexact-milliseconds)))))
@@ -75,7 +84,7 @@
     ((= n 1) f)
     (else (compose f (repeated f (- n 1))))))
 
-;;; Streams
+;;; STREAMS
 
 (define-syntax cons-stream
   (syntax-rules ()
@@ -85,7 +94,7 @@
 
 (define (stream-null? x) (null? x))
 
-;;; Syntax
+;;; Syntax checking, I don't know what it is yet
 
 ;; (define-syntax sicp:error
 ;;   (syntax-rules ()
@@ -130,7 +139,7 @@
 (define (%approx-equal? a b)
   (< (abs (- a b)) 1/10000))
 
-;;; Canvas for diplaying picture on racket REPL
+;;; CANVAS FOR DIPLAYING PICTURE FROM RACKET REPL
 
 ;;; Primitives
 
@@ -257,11 +266,55 @@
 (define wave
   (segments->painter geogre))
 
+;;; DISPATCH FOR DATA-DIRECTED PROGRAMMING
+
+;; Some primitives
+(define (variable? x) (symbol? x))
+(define (same-variable? v1 v2)
+  (and (variable? v1) (variable? v2) (eq? v1 v2)))
+
+;; for method dispatch table
+(define DISPATCH-TABLE (make-hash))
+
+(define (put op type proc)
+  (hash-set! DISPATCH-TABLE (cons op type) proc))
+
+(define (get op type)
+  (hash-ref DISPATCH-TABLE (cons op type) #f))
+
+(define (dispatch-clear!)
+  (hash-clear! DISPATCH-TABLE))
+
+;; for type-tags
+(define (attach-tag type-tag contents)
+  (cons type-tag contents))
+
+(define (type-tag datum)
+  (if (pair? datum)
+      (car datum)
+      (error "Bad tagged datum: TYPE-TAG" datum)))
+
+(define (contents datum)
+  (if (pair? datum)
+      (cdr datum)
+      (error "Bad tagged datum: CONTENTS" datum)))
+
+;; the dispatch methods
+(define (apply-generic op . args)
+  (let ((type-tags (map type-tag args)))
+    (let ((proc (get op type-tags)))
+      (if proc
+          (apply proc (map contents args))
+          (error
+           "No method for these types: APPLY-GENERIC"
+           (list op type-tags))))))
+
 (#%provide
 ;; (for-syntax syntax-rules ...)
  (rename racket:module-begin #%module-begin)
  (all-from (planet williams/science:4:=8/science))
  (all-from graphics/graphics)
+ (all-from racket/mpair)
 ;; (rename sicp:error  error)
  (rename random-integer random)
 ;; check-expect
@@ -289,4 +342,13 @@
  geogre
  stream-null?
  the-empty-stream
- cons-stream)
+ cons-stream
+ get
+ put
+ attach-tag
+ type-tag
+ contents
+ variable?
+ same-variable?
+ apply-generic)
+
