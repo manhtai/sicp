@@ -1,5 +1,6 @@
-
+;; ==========================================================================  
 ;; GENERIC OPERATIONS
+;; ==========================================================================  
 
 (define (add x y) (apply-generic 'add x y))
 (define (sub x y) (apply-generic 'sub x y))
@@ -57,13 +58,14 @@
        (lambda (x y) (tag (mul-rat x y))))
   (put 'div '(rational rational)
        (lambda (x y) (tag (div-rat x y))))
-
-  (put 'make 'rational
+  (put 'make '(rational)
        (lambda (n d) (tag (make-rat n d))))
   'done)
 
 (define (make-rational n d)
   ((get 'make 'rational) n d))
+
+(install-rational-package)
 
 ;; EXERCISE 2.77
 ;; Required packages
@@ -222,35 +224,275 @@
 ;; 'equ?' generic predicate
 (define (equ? a b) (apply-generic 'equ? a b))
 
-;; Update for ordinary numbers
-(define ordinary-equ? =)
-(put 'equ? '(scheme-number scheme-number) ordinary-equ?)
+(define (install-equ-package)
+  ;; Update for ordinary numbers
+  (define ordinary-equ? =)
+  ;; Update for rational numbers
+  (define numer car)
+  (define denom cdr)
+  (define (rational-equ? x y)
+    (= (* (numer x) (denom y))
+       (* (numer y) (denom x))))
+  ;; Update complex package
+  (define (complex-equ? a b)
+    (and
+     (= (real-part a) (real-part b))
+     (= (imag-part a) (imag-part b))))
+  ;; Put
+  (put 'equ? '(scheme-number scheme-number) ordinary-equ?)
+  (put 'equ? '(rational rational) rational-equ?)
+  (put 'equ? '(complex complex) complex-equ?))
 
-;; Update for rational numbers
-(define (rational-equ? x y)
-  (= (* (numer x) (denom y))
-     (* (numer y) (denom x))))
-(put 'equ? '(rational rational) rational-equ?)
+(install-equ-package)
 
-;; Update complex package
-(define (complex-equ? a b)
-  (and
-   (= (real-part a) (real-part b)))
-   (= (imag-part a) (imag-part b)))
-(put 'equ? '(complex complex) complex-equ?)
+;; Helper
+(define (real-part x) (apply-generic 'real-part x))
+(define (imag-part x) (apply-generic 'imag-part x))
+
+;; Test
+(equ? (make-complex-from-real-imag 3 4) (make-complex-from-real-imag 3 4))
+(equ? (make-scheme-number 10) (make-scheme-number 10))
+(equ? (make-rational 10 5) (make-rational 2 1))
+(equ? (make-rational 10 5) (make-rational 3 1))
+
 
 ;; EXERCISE 2.80
 ;; '=zero?' generic predicate
 (define (=zero? x) (apply-generic '=zero? x))
 
-;; Update for ordinary numbers
-(put '=zero? 'scheme-number =)
+(define (install-zero-package)
+  ;; Update for ordinary numbers
+  (put '=zero? '(scheme-number) zero?)
+  ;; Update for rational numbers
+  (put '=zero? '(rational) (lambda (x) (zero? (car x))))
+  ;; Update complex package
+  (put '=zero? '(complex) (lambda (x) (= (real-part x) (imag-part x) 0))))
 
-;; Update for rational numbers
-(put '=zero? 'rational (lambda (x) (= (numer x) 0)))
+(install-zero-package)
 
-;; Update complex package
-(put '=zero? 'complex (lambda (x) (= (real-part a) (imag-part a) 0)))
+;; Test
+(=zero? (make-complex-from-real-imag 0 0))
+(=zero? (make-scheme-number 0))
+(=zero? (make-rational 0 1))
+(=zero? (make-rational 1 1))
+
+;; => Think about 2.76:
+;; When new operation arrives, with data-directed approach we must write a package to update
+;; it to all old correspoding data types
+;; We will talk about this more latter ;)
+
+;; ==========================================================================  
+;; COERCION
+;; ==========================================================================  
+
+;; EXERCISE 2.81
+
+(define (scheme-number->scheme-number n) n)
+(define (complex->complex z) z)
+(put-coercion 'scheme-number 'scheme-number
+              scheme-number->scheme-number)
+(put-coercion 'complex 'complex complex->complex)
+;; a)
+;; If we call exp with two complex numbers:
+;; (exp (complex a) (complex b))
+;; Since there is no 'exp' procedure for 'complex' type in the table, apply-generic
+;; will look up in coercion table and find out 'complex->complex' coercion, it will try
+;; to apply it, and the expression becomes
+;; (exp (complex a) (complex b))
+;; which is same as before => This will cause an infinite loop.
+
+;; b)
+;; 'apply-generic' works correctly as it does. We don't need to add anything, but if
+;; we still want it doesn't try coercion if 2 arguments have the same type, we can do c)
+
+;; c)
+;;  
+(define (apply-generic op . args)
+  (let ((type-tags (map type-tag args)))
+    (let ((proc (get op type-tags)))
+      (if proc
+          (apply proc (map contents args))
+          (if (= (length args) 2)
+              (let ((type1 (car type-tags))
+                    (type2 (cadr type-tags))
+                    (a1 (car args))
+                    (a2 (cadr args)))
+                (if (eq? type1 type2) ;; Test for type, if they are same, raise error
+                    (error "No method for these types" (list op type-tags)) 
+                    (let ((t1->t2 (get-coercion type1 type2))
+                          (t2->t1 (get-coercion type2 type1)))
+                      (cond (t1->t2
+                             (apply-generic op (t1->t2 a1) a2))
+                            (t2->t1
+                             (apply-generic op a1 (t2->t1 a2)))
+                            (else
+                             (error "No method for these types"
+                                    (list op type-tags)))))))
+              (error "No method for these types"
+                     (list op type-tags)))))))
+
+;; EXERCISE 2.82
+;; Multiple arguments version
+;; Idea: attempt to coerce all the arguments to the type of the first argument,
+;; then to the type of the second argument, and so on.
+;; I leave it here as a challenge
+
+
+;; EXERCISE 2.83
+;; Define generic raise
+(define (raise x) (apply-generic 'raise x))
+
+;; complex
+;;   ^
+;; real
+;;   ^
+;; rational
+;;   ^
+;; integer
+
+;; Make a dispatched package
+(define (install-raise-package)
+  (put 'raise '(integer) (lambda (x) (make-rational x 1)))
+  (put 'raise '(rational) (lambda (x) (make-real (/ (numer x) (denom x)))))
+  (put 'raise '(real) (lambda (x) (make-from-real-imag x 0))))
+
+(install-raise-package)
+
+;; Note: to use this pacakge you need to build integer and real package beside complex package
+;; which we've developed
+
+;; EXERCISE 2.84
+;; Raise type in a tower
+(define (apply-generic op . args)
+  ;; raise l to h
+  (define (raise-to l h)
+    (let ((l-type (type-tag l))
+          (h-type (type-tag h)))
+      (cond ((equal? l-type h-type) l)
+            ((get 'raise (list l-type))
+             (raise-to ((get 'raise (list l-type))) (contents l)) h)
+            (else #f))))
+  ;; from now on it is same as 2.81
+  ;; so everything is work consistent with the rest
+  (let ((type-tags (map type-tag args)))
+    (let ((proc (get op type-tags)))
+      (if proc
+          (apply proc (map contents args))
+          (if (= (length args) 2)
+              (let ((type1 (car type-tags))
+                    (type2 (cadr type-tags))
+                    (a1 (car args))
+                    (a2 (cadr args)))
+                (if (eq? type1 type2) ;; Test for type, if they are same, raise error
+                    (error "No method for these types" (list op type-tags)) 
+                    (let ((t1->t2 (raise-to type1 type2))
+                          (t2->t1 (raise-to type2 type1)))
+                      (cond (t1->t2
+                             (apply-generic op (t1->t2 a1) a2))
+                            (t2->t1
+                             (apply-generic op a1 (t2->t1 a2)))
+                            (else
+                             (error "No method for these types"
+                                    (list op type-tags)))))))
+              (error "No method for these types"
+                     (list op type-tags)))))))
+
+;; EXERCISE 2.85
+;; Define generic drop
+(define (drop x) (apply-generic 'drop x))
+
+;; complex
+;;   𝈍
+;; real
+;;   𝈍
+;; rational
+;;   𝈍
+;; integer
+
+;; Make a dispatched package
+(define (install-drop-pacakge)
+  (put 'drop '(complex) (lambda (x) (make-real (real-part x))))
+  (put 'drop '(real) (lambda (x) (make-integer (floor x))))
+  (put 'drop '(rational) (lambda (x) (make-integer (floor (/ (numer x) (denom x)))))))
+
+(install-drop-package)
+
+;; Note: to use this pacakge you need to build integer and real package beside complex package
+;; which we've developed
+
+;; Now we use in to rewrite apply-generic
+(define (apply-generic op . args)
+  ;; raise l to h
+  (define (raise-to l h)
+    (let ((l-type (type-tag l))
+          (h-type (type-tag h)))
+      (cond ((equal? l-type h-type) l)
+            ((get 'raise (list l-type))
+             (raise-to ((get 'raise (list l-type))) (contents l)) h)
+            (else #f))))
+  ;; drop h to l
+  (define (drop-to h l)
+    (let ((l-type (type-tag l))
+          (h-type (type-tag h)))
+      (cond ((equal? l-type h-type) l)
+            ((get 'drop (list h-type))
+             (drop-to ((get 'drop (list h-type))) (contents h)) l)
+            (else #f))))
+  ;; dropable?
+  (define (dropable? h l)
+    (equ? h (raise-to (drop-to h l) h)))
+  ;; from now on it is same as 2.81
+  ;; so everything is work consistent with the rest
+  (let ((type-tags (map type-tag args)))
+    (let ((proc (get op type-tags)))
+      (if proc
+          (apply proc (map contents args))
+          (if (= (length args) 2)
+              (let ((type1 (car type-tags))
+                    (type2 (cadr type-tags))
+                    (a1 (car args))
+                    (a2 (cadr args)))
+                (if (eq? type1 type2) ;; Test for type, if they are same, raise error
+                    (error "No method for these types" (list op type-tags)) 
+                    (let ((t1->t2? (dropable? type1 type2))
+                          (t2->t1? (dropable? type2 type1))
+                          (t1->t2 (raise-to type1 type2))
+                          (t2->t1 (raise-to type2 type1)))
+                      (cond (t1->t2?
+                             (apply-generic op ((drop-to type1 type2) a1) a2))
+                            (t2->t1?
+                             (apply-generic op a1 ((drop-to type2 type1) a2)))
+                            (t1->t2
+                             (apply-generic op (t1->t2 a1) a2))
+                            (t2->t1
+                             (apply-generic op a1 (t2->t1 a2)))
+                            (else
+                             (error "No method for these types"
+                                    (list op type-tags)))))))
+              (error "No method for these types"
+                     (list op type-tags)))))))
+
+;; EXERCISE 2.86
+;; To accomodate the changes:
+;; - We need to change +, -, *, / to add, sub, mul, div generic operations
+;; - We need to implement square, square-root, sine, cosine, arctan generic operations
+;; And apply that to 3 packages: rectangular, polar, complex 
+
+(define (cosine x) (apply-generic 'cosine x))
+(define (sine x) (apply-generic 'sine x))
+(define (arctan x) (apply-generic 'arctan x))
+(define (square-root x) (apply-generic 'square-root x))
+(define (square x) (apply-generic 'square x))
+
+
+;; I leaves implementation details to Geogre
+
+
+
+;; ==========================================================================  
+;; SYMBOLIC ALGEBRA
+;; ==========================================================================  
+
 
 
 

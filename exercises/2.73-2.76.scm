@@ -181,10 +181,9 @@
 ;;
 ;; message-passing style:
 ;; => to add new types:
-;; - we must update all operations to incorporate new types in its dispatch 
+;; - we must construct a new dispatch contains all operations inside
 ;; => to add new operations:
-;; - we must construct a new dispatch return result corressponding to each types inside
-;; each new operations
+;; - we must update all data types to incorporate new operations 
 
 ;; b) In a system that new types must often be added in:
 ;; => we should use data-directed style because we only need to install new packages to system
