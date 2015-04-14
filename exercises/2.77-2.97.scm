@@ -491,17 +491,49 @@
 
 ;; ==========================================================================  
 ;; SYMBOLIC ALGEBRA
+;; WARNING: UNDONE JOB!!!
 ;; ==========================================================================  
 
 ;; EXERCISE 2.87
+;; Conditions:
+;; - All terms must be zero
+;; - Term is considered zero when its coefficient is zero
 (define (install-poly-zero-package)
+  (define (zero-poly? poly)
+    (define (zero-term? termlist)
+      (or (empty-termlist? termlist)
+          (and (=zero? (coeff (first-term termlist)))
+               (zero-term? (rest-terms termlist)))))
+    (zero-term? (term-list poly)))
   ;; Update for polynomials numbers
-  (put '=zero? '(polynomials) (lambda (x) (zero? (car x)))))
+  (put '=zero? '(polynomials) 'zero-poly?))
 
 (install-zero-package)
 
 ;; EXERCISE 2.88
+;; Works:
+;; - Build generic 'negate' for scheme-number, rational, complex and polynomial type
+;; - Build 'sub' for polynomial type
+(defie (negate x) (apply-generic 'negate x))
 
+(define (install-negate-package)
+  (put 'negate 'scheme-number (lambda (x) (tag (- x))))
+  (put 'negate 'rational (lambda (rat) (make-rat (- (numer rat)) (- (denom rat)))))
+  (put 'negate 'complex (lambda (comp) (make-from-real-imag (- (real-part comp))
+                                                            (- (imag-part comp)))))
+  (define (negate-terms termlist)
+    ;; Negate procedure for termlist
+    )
+  (put 'negate '(polynomial) 
+       (lambda (poly) (make-polynomial (variable poly)
+                                       (negate-terms (term-list poly))))))
+
+(define (install-sub-poly-package)
+  (put 'sub '(polynomial polynomial)
+       (lambda (x y) (tag (add-poly x (negate y))))))
+
+(install-negate-package)
+(install-sub-poly-package)
 
 ;; EXERCISE 2.89
 
