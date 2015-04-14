@@ -493,7 +493,79 @@
 ;; SYMBOLIC ALGEBRA
 ;; ==========================================================================  
 
+;; EXERCISE 2.87
+(define (install-poly-zero-package)
+  ;; Update for polynomials numbers
+  (put '=zero? '(polynomials) (lambda (x) (zero? (car x)))))
 
+(install-zero-package)
+
+;; EXERCISE 2.88
+
+
+;; EXERCISE 2.89
+
+
+;; EXERCISE 2.90
+
+
+;; EXERCISE 2.91
+
+(define (div-terms L1 L2)
+  (if (empty-termlist? L1)
+      (list (the-empty-termlist) (the-empty-termlist))
+      (let ((t1 (first-term L1))
+            (t2 (first-term L2)))
+        (if (> (order t2) (order t1))
+            (list (the-empty-termlist) L1)
+            (let ((new-c (div (coeff t1) (coeff t2)))
+                  (new-o (- (order t1) (order t2))))
+              (let ((rest-of-result
+                     ??FILL-THIS-IN?? ;compute rest of result recursively
+                     ))
+                ??FILL-THIS-IN?? ;form complete result
+                ))))))
+
+
+;; EXERCISE 2.93
+;: (define p1 (make-polynomial 'x '((2 1)(0 1))))
+;: (define p2 (make-polynomial 'x '((3 1)(0 1))))
+;: (define rf (make-rational p2 p1))
+
+;; Rational functions
+
+(define (gcd a b)
+  (if (= b 0)
+      a
+      (gcd b (remainder a b))))
+
+(define (gcd-terms a b)
+  (if (empty-termlist? b)
+      a
+      (gcd-terms b (remainder-terms a b))))
+
+
+;; EXERCISE 2.94
+;: (define p1 (make-polynomial 'x '((4 1) (3 -1) (2 -2) (1 2))))
+;: (define p2 (make-polynomial 'x '((3 1) (1 -1))))
+;: (greatest-common-divisor p1 p2)
+
+
+;; EXERCISE 2.97
+
+(define (reduce-integers n d)
+  (let ((g (gcd n d)))
+    (list (/ n g) (/ d g))))
+
+;: (define p1 (make-polynomial 'x '((1 1)(0 1))))
+;: (define p2 (make-polynomial 'x '((3 1)(0 -1))))
+;: (define p3 (make-polynomial 'x '((1 1))))
+;: (define p4 (make-polynomial 'x '((2 1)(0 -1))))
+
+;: (define rf1 (make-rational p1 p2))
+;: (define rf2 (make-rational p3 p4))
+
+;: (add rf1 rf2)
 
 
 
