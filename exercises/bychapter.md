@@ -16,11 +16,11 @@
 
 ## Chapter 3: 82 exercises
 
-- Section 3.1:
-- Section 3.2:
-- Section 3.3:
-- Section 3.4:
-- Section 3.5:
+- Section 3.1: 3.1-3.8
+- Section 3.2: 3.9-3.11
+- Section 3.3: 3.12-3.37
+- Section 3.4: 3.38-3.49
+- Section 3.5: 3.50-3.82
 
 ## Chapter 4: 79 exercises
 

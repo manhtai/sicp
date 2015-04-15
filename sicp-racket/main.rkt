@@ -316,7 +316,6 @@
  (all-from graphics/graphics)
  (all-from racket/mpair)
 ;; (rename sicp:error  error)
- (rename random-integer random)
 ;; check-expect
 ;; check-expect-approx
  false
