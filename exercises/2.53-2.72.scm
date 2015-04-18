@@ -346,7 +346,9 @@
 ;; Evaluate
 (list->tree '(1 5 3 8 2 4)) ; return
 '(3 (1 () (5 () ())) (2 (8 () ()) (4 () ())))
-; which isn't a binary tree, but a balanced tree, indeed.
+;; which isn't a binary tree, but a balanced tree, indeed.
+;; BUT: If you build a tree from scratch, i.e. no converting from list, then it's
+;; the same as the ordered list
 
 ;; EXERCISE 2.66
 ;; Ordered binary tree, same as before we can look in the right or in the left
