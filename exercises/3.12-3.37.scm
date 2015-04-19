@@ -376,26 +376,36 @@ w
     ;; Outer interface
     (define (dispatch m)
       (cond ((eq? m 'lookup) lookup)
-            ((eq? m 'insert!) insert!)))
+            ((eq? m 'insert!) insert!)
+            ((eq? m 'print) (display (cdr table)))))
     dispatch))
 
 ;; Test that!
 (define t (make-table))
 ((t 'insert!) 1  97)
 ((t 'insert!) 1  98)
-((t 'insert!) 2  108)
 
 ((t 'lookup) 1)
 ((t 'lookup) 2)
+
+(t 'print)
+
+;; Syntactic sugar
+(define (insert t x y) ((t 'insert!) x y))
+(define (lookup t x) ((t 'lookup) x))
+(define (print t) (t 'print))
+
+(insert t 3 108)
+(print t)
 
 ;; EXERCISE 3.27
 (define (memoize f)
   (let ((table (make-table)))
     (lambda (x)
-      (let ((previously-computed-result ((table 'lookup) x)))
+      (let ((previously-computed-result (lookup table x)))
         (or previously-computed-result ;; 'or' new use :D
             (let ((result (f x)))
-              ((table 'insert!) x result)
+              (insert table x result)
               result))))))
 
 (define memo-fib

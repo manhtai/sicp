@@ -9,11 +9,7 @@
                  void?)
            (rename racket/base racket:module-begin #%module-begin)
            (only (planet williams/science:4:=8/science) random-integer) 
-           ;; Import random-integer for generating number larger than 4294967087
-           racket/mpair
-           ;; mpair for set-mcar!, set-mcdr!
            graphics/graphics)
-           ;; Import graphics for display picture in canvas
 
 ;;; ARITHMETIC
 
@@ -68,7 +64,6 @@
         (else (+ (fib (- n 1))
                  (fib (- n 2))))))
 
-
 ;;; UTILITIES
 
 (define (runtime)
@@ -94,47 +89,47 @@
 
 (define (stream-null? x) (null? x))
 
-;;; Syntax checking, I don't know what it is yet
+;;; SYNTAX CHECKING
 
-;; (define-syntax sicp:error
-;;   (syntax-rules ()
-;;     ((_ REASON ARG ...) (error REASON ARG ...))))
-;; 
-;; (define-syntax sicp-syntax-error
-;;   (syntax-rules ()
-;;     ((_) #f)))
-;; 
-;; (define-syntax check-expect
-;;   (syntax-rules ()
-;;     ((_ VAL EXPECT)
-;;      (%check-expect-internal 'check-expect
-;;                              equal?
-;;                              (quote VAL)
-;;                              VAL
-;;                              EXPECT))))
-;; 
-;; (define-syntax check-expect-approx
-;;   (syntax-rules ()
-;;     ((_ VAL EXPECT)
-;;      (%check-expect-internal 'check-expect-approx
-;;                              %approx-equal?
-;;                              (quote VAL)
-;;                              VAL
-;;                              EXPECT))))
-;; 
-;; (define (%check-expect-internal name check-proc val-syntax val expected)
-;;   (display name)
-;;   (display ": ")
-;;   (write val-syntax)
-;;   (display " \u21D2 ")
-;;   (let ((v VAL))
-;;     (display val)
-;;     (newline)
-;;     (if (check-proc val expected)
-;;         (values)
-;;         (error name
-;;                "Test failed: expected ~S"
-;;                expected))))
+(define-syntax sicp:error
+  (syntax-rules ()
+    ((_ REASON ARG ...) (error REASON ARG ...))))
+
+(define-syntax sicp-syntax-error
+  (syntax-rules ()
+    ((_) #f)))
+
+(define-syntax check-expect
+  (syntax-rules ()
+    ((_ VAL EXPECT)
+     (%check-expect-internal 'check-expect
+                             equal?
+                             (quote VAL)
+                             VAL
+                             EXPECT))))
+
+(define-syntax check-expect-approx
+  (syntax-rules ()
+    ((_ VAL EXPECT)
+     (%check-expect-internal 'check-expect-approx
+                             %approx-equal?
+                             (quote VAL)
+                             VAL
+                             EXPECT))))
+
+(define (%check-expect-internal name check-proc val-syntax val expected)
+  (display name)
+  (display ": ")
+  (write val-syntax)
+  (display " \u21D2 ")
+  (let ((v val))
+    (display val)
+    (newline)
+    (if (check-proc val expected)
+        (values)
+        (error name
+               "Test failed: expected ~S"
+               expected))))
 
 (define (%approx-equal? a b)
   (< (abs (- a b)) 1/10000))
@@ -309,15 +304,30 @@
            "No method for these types: APPLY-GENERIC"
            (list op type-tags))))))
 
+;;; PARALLEL EXCUTING SUPPORT
+
+(define (parallel-execute . thunks)
+  (for-each thread thunks))
+
+(define (make-serializer)
+  (let ((mutex (make-semaphore 1)))
+    (lambda (p)
+      (define (serialized-p . args)
+        (semaphore-wait mutex)
+        (let ((val (apply p args)))
+          (semaphore-post mutex)
+          val))
+      serialized-p)))
+
+
 (#%provide
-;; (for-syntax syntax-rules ...)
+ (for-syntax syntax-rules ...)
  (rename racket:module-begin #%module-begin)
  (all-from (planet williams/science:4:=8/science))
  (all-from graphics/graphics)
- (all-from racket/mpair)
-;; (rename sicp:error  error)
-;; check-expect
-;; check-expect-approx
+ (rename sicp:error error)
+ check-expect
+ check-expect-approx
  false
  true
  identity
@@ -329,6 +339,7 @@
  cube
  prime?
  pi
+ fib
  average
  compose
  repeated
@@ -349,5 +360,7 @@
  contents
  variable?
  same-variable?
- apply-generic)
+ apply-generic
+ parallel-execute
+ make-serializer)
 
