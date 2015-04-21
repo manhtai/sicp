@@ -10,8 +10,9 @@
            (rename racket/base racket:module-begin #%module-begin)
            (only (planet williams/science:4:=8/science) random-integer) 
            graphics/graphics)
-
+;;; ========================================================================= 
 ;;; ARITHMETIC
+;;; ========================================================================= 
 
 (define true #t)
 
@@ -64,7 +65,9 @@
         (else (+ (fib (- n 1))
                  (fib (- n 2))))))
 
+;;; ========================================================================= 
 ;;; UTILITIES
+;;; ========================================================================= 
 
 (define (runtime)
   (inexact->exact (truncate (* 1000 (current-inexact-milliseconds)))))
@@ -79,7 +82,9 @@
     ((= n 1) f)
     (else (compose f (repeated f (- n 1))))))
 
+;;; ========================================================================= 
 ;;; STREAMS
+;;; ========================================================================= 
 
 (define-syntax cons-stream
   (syntax-rules ()
@@ -89,7 +94,66 @@
 
 (define (stream-null? x) (null? x))
 
+(define (stream-car stream) (car stream))
+(define (stream-cdr stream) (force (cdr stream)))
+
+(define (stream-ref s n)
+  (if (= n 0)
+      (stream-car s)
+      (stream-ref (stream-cdr s) (- n 1))))
+
+(define (stream-for-each proc s)
+  (if (stream-null? s)
+      'done
+      (begin (proc (stream-car s))
+             (stream-for-each proc (stream-cdr s)))))
+
+(define (display-line x)
+  (newline)
+  (display x))
+
+(define (list->stream list)
+  (if (null? list)
+      the-empty-stream
+      (cons-stream (car list)
+                   (list->stream (cdr list)))))
+
+(define (display-stream s [n 17])
+  (define (ds x t)
+    (cond ((> t 0)
+           (display-line (stream-car x))
+           (ds (stream-cdr x) (- t 1)))))
+  (ds s n))
+
+(define (stream-map proc . argstreams)
+  (if (null? (car argstreams))
+      the-empty-stream
+      (cons-stream
+        (apply proc (map stream-car argstreams))
+        (apply stream-map
+               (cons proc (map stream-cdr argstreams))))))
+
+(define (scale-stream stream factor)
+  (stream-map (lambda (x) (* x factor)) stream))
+
+(define (stream-enumerate-interval low high)
+  (if (> low high)
+      the-empty-stream
+      (cons-stream
+       low
+       (stream-enumerate-interval (+ low 1) high))))
+
+(define (stream-filter pred stream)
+  (cond ((stream-null? stream) the-empty-stream)
+        ((pred (stream-car stream))
+         (cons-stream (stream-car stream)
+                      (stream-filter pred
+                                     (stream-cdr stream))))
+        (else (stream-filter pred (stream-cdr stream)))))
+
+;;; ========================================================================= 
 ;;; SYNTAX CHECKING
+;;; ========================================================================= 
 
 (define-syntax sicp:error
   (syntax-rules ()
@@ -134,7 +198,9 @@
 (define (%approx-equal? a b)
   (< (abs (- a b)) 1/10000))
 
+;;; ========================================================================= 
 ;;; CANVAS FOR DIPLAYING PICTURE FROM RACKET REPL
+;;; ========================================================================= 
 
 ;;; Primitives
 
@@ -261,7 +327,9 @@
 (define wave
   (segments->painter geogre))
 
+;;; ========================================================================= 
 ;;; DISPATCH FOR DATA-DIRECTED PROGRAMMING
+;;; ========================================================================= 
 
 ;; Some primitives
 (define (variable? x) (symbol? x))
@@ -304,7 +372,9 @@
            "No method for these types: APPLY-GENERIC"
            (list op type-tags))))))
 
+;;; ========================================================================= 
 ;;; PARALLEL EXCUTING SUPPORT
+;;; ========================================================================= 
 
 (define (parallel-execute . thunks)
   (for-each thread thunks))
@@ -352,7 +422,18 @@
  geogre
  stream-null?
  the-empty-stream
+ stream-ref
+ stream-for-each
+ stream-enumerate-interval
+ stream-map
+ stream-filter
+ display-stream
+ display-line
  cons-stream
+ stream-car
+ stream-cdr
+ scale-stream
+ list->stream
  get
  put
  attach-tag

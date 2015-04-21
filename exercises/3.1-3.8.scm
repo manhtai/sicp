@@ -94,6 +94,7 @@
 
 ;; EXERCISE 3.5
 ;; Monte Carlo integration
+;; NOTICE: THIS VERSION IS SPECIFIED FOR CALCULATE PI, IT'S NOT GENERAL INTEGRAL
 ;; Monte Carlo
 (define (monte-carlo trials experiment)
   (define (iter trials-remaining trials-passed)
@@ -106,7 +107,7 @@
   (iter trials 0))
 
 ;; Integration
-(define (estimate-integral x1 x2 y1 y2 trials)
+(define (estimate-integral trials)
   ;; (random) in racket return inexact number between 0 and 1
   ;; so I code this
   (define (random-in-range) (* 2 (random)))
@@ -117,7 +118,7 @@
   (monte-carlo trials integral))
 
 ;; Estimate pi
-(* 4 (estimate-integral 1 2 1 2 1000000.0)) ; 3.14?
+(* 4 (estimate-integral 1000000.0)) ; 3.14?
 
 
 
