@@ -803,7 +803,7 @@ sum ;; 210
   (monte-carlo trials integral))
 
 ;; Estimate pi
-(* 4 (estimate-integral 1000000.0)) ; 3.142768
+(* 4 (estimate-integral 1000000.0)) ; 3.14
 
 ;; New version
 ;; NOTICE: THIS VERSION IS SPECIFIED FOR CALCULATE PI, IT'S NOT GENERAL INTEGRAL

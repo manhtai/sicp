@@ -1,4 +1,5 @@
-# Exercises
+# DONE ALMOST
+=================
 
 ## Chapter 1: 46 exercises
 
@@ -22,12 +23,15 @@
 - Section 3.4: 3.38-3.49
 - Section 3.5: 3.50-3.82
 
+# NOT DONE
+=================
+
 ## Chapter 4: 79 exercises
 
-- Section 4.1:
-- Section 4.2:
-- Section 4.3:
-- Section 4.4:
+- Section 4.1: 4.1-4.24
+- Section 4.2: 4.25-4.34
+- Section 4.3: 4.35-4.54
+- Section 4.4: 4.55-4.79
 
 ## Chapter 5: 52 exercises
 
